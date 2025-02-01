@@ -54,7 +54,7 @@ class AuthController {
 
             // Optionally, pass an error message to the view.
             $error = "Invalid username or password.";
-            require_once __DIR__ . '/../app/Views/LoginView.php';
+            require_once __DIR__ . '/../Views/LoginView.php';
         }
     }
 
