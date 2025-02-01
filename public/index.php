@@ -1,24 +1,34 @@
 <?php
 /*
 /public/index.php
-Used to bootstrap app, start logging, start analytics tracking, check login status, and push to one of two routers - auth router and app router based on login status.
+Used to bootstrap the app, start logging, start analytics tracking, check login status,
+and push to one of two routers - auth router and app router based on login status.
 */
 
-// Autoload dependencies (if using Composer)
-// require_once __DIR__ . '/../vendor/autoload.php';
+// Include the GlobalLogger class (adjust the path as needed)
+require_once __DIR__ . '/../core/GlobalLogger.php';
 
-// Start a session (if needed)
+// Start a session if needed
 session_start();
 
-// Load environment variables
-// require_once __DIR__ . '/../config/config.php';
+// Optionally load environment variables.
+// You might use a library like vlucas/phpdotenv to load a .env file.
+// For this example, we'll assume that environment variables are already set.
+$appEnv = getenv('APP_ENV') ?: 'production';
 
-// Include logging & analytics tracking (example)
-// require_once __DIR__ . '/../bootstrap/logging.php';
-// require_once __DIR__ . '/../bootstrap/analytics.php';
+// Configure the logger.
+// NOTE: Create a "logs" folder in your project root (i.e., alongside README.md and app/) so the log file can be written.
+$loggerConfig = [
+    'environment' => $appEnv,
+    'logFile'     => __DIR__ . '/../logs/app.log'
+];
+$logger = GlobalLogger::getInstance($loggerConfig);
 
-// Check login status
-$isLoggedIn = isset($_SESSION['user_id']); // Example login check
+// Log that the application has started.
+$logger->info("Application bootstrapped");
+
+// Check login status (example check)
+$isLoggedIn = isset($_SESSION['user_id']);
 
 // Redirect to appropriate router
 if ($isLoggedIn) {
