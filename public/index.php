@@ -1,80 +1,42 @@
 <?php
+// public/index.php
 /**
- * Advanced Application Bootstrapper
+ * Advanced Front Controller
  *
- * This is the main entry point for the application. It initializes
- * error reporting, session management, environment configuration,
- * logging, and routing. Depending on the user's login status,
- * requests are routed to either the dashboard or the login page.
- *
- * Directory Structure Assumption:
- * 
- * taskvera-jjturfs-admin.git/
- *  ├── app/
- *  │   ├── Controllers/
- *  │   │   └── AuthController.php
- *  │   ├── Models/
- *  │   │   └── UserModel.php
- *  │   └── Views/
- *  │       ├── DashboardView.php
- *  │       └── LoginView.php
- *  ├── core/
- *  │   ├── GlobalLogger.php
- *  │   └── Router.php
- *  ├── logs/
- *  │   └── app.log
- *  └── public/
- *      └── index.php
+ * Bootstraps the application: loads configuration, initializes
+ * autoloading, starts the session, sets up logging, and dispatches routes.
  */
 
-// ==========================================================================
-// 1. Error Reporting (For Development Only)
-// ==========================================================================
+// 1. Error Reporting (for development)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-// NOTE: In production, disable error display and log errors instead.
 
-// ==========================================================================
-// 2. Start Session and Load Environment Settings
-// ==========================================================================
-session_start(); // Start PHP session management
+// 2. Start the session and load configuration
+session_start();
+$config = require __DIR__ . '/../config/config.php';
 
-// Load environment configuration.
-// APP_ENV could be defined via an .env file, Apache environment, or default to 'production'.
-$appEnv = getenv('APP_ENV') ?: 'production';
+// 3. Include the autoloader
+require_once __DIR__ . '/../core/Autoloader.php';
 
-// ==========================================================================
-// 3. Logger Configuration and Initialization
-// ==========================================================================
+// 4. Import classes using namespaces
+use Core\GlobalLogger;
+use Core\Router;
+use App\Controllers\AuthController;
+
+// 5. Initialize the logger
 $loggerConfig = [
-    'environment' => $appEnv,
-    // Ensure that a "logs" folder exists at the project root.
-    'logFile'     => __DIR__ . '/../logs/app.log'
+    'environment' => $config['app_env'],
+    'logFile'     => $config['log_file']
 ];
-
-// Include core classes for logging and routing
-require_once __DIR__ . '/../core/GlobalLogger.php';
-require_once __DIR__ . '/../core/Router.php';
-
-// Include authentication controller
-require_once __DIR__ . '/../app/Controllers/AuthController.php';
-
-// Initialize the GlobalLogger singleton instance.
 $logger = GlobalLogger::getInstance($loggerConfig);
 $logger->info("Application bootstrapped");
 
-// ==========================================================================
-// 4. Instantiate the Router
-// ==========================================================================
+// 6. Instantiate the router
 $router = new Router();
 
-// ==========================================================================
-// 5. Check Login Status and Define Conditional Routes
-// ==========================================================================
-// Determine if the user is logged in by checking for a session variable.
-// (In a real-world application, you might check for a valid token or user object.)
+// 7. Define routes based on authentication status
 $isLoggedIn = isset($_SESSION['user_id']);
-
+if ($isLoggedIn) {
 // If the user is logged in, define routes for accessing the dashboard.
 if ($isLoggedIn) {
     // Route for the dashboard view (e.g., GET /dashboard)
@@ -98,36 +60,22 @@ if ($isLoggedIn) {
         exit();
     });
 }
+} 
 
-// ==========================================================================
-// 6. Define Authentication Routes Using AuthController
-// ==========================================================================
+// 8. Define authentication routes
 $authController = new AuthController($logger);
-
-// Route for displaying the login form (GET /login)
 $router->add('GET', '/^\/login$/', [$authController, 'showLogin']);
-
-// Route for processing login submissions (POST /login)
 $router->add('POST', '/^\/login$/', [$authController, 'handleLogin']);
-
-// Route for logging out the user (GET /logout)
 $router->add('GET', '/^\/logout$/', [$authController, 'logout']);
 
-// ==========================================================================
-// 7. Dispatch the Incoming Request via the Router
-// ==========================================================================
-// Capture the HTTP method and the request URI.
-// Dispatch the request
+// 9. Dispatch the incoming request
 $method = $_SERVER['REQUEST_METHOD'];
 $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $routeFound = $router->dispatch($method, $uri);
 
-// If no route matches the request, log the event and return a 404 error.
 if (!$routeFound) {
     $logger->warn("No matching route found", ['method' => $method, 'uri' => $uri]);
     header("HTTP/1.0 404 Not Found");
     echo "404 Not Found";
     exit();
 }
-
-?>

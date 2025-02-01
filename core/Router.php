@@ -1,36 +1,35 @@
 <?php
 // core/Router.php
+namespace Core;
 
 class Router {
     protected $routes = [];
 
     /**
-     * Add a new route to the router.
+     * Add a new route.
      *
-     * @param string   $method   The HTTP method (GET, POST, etc.).
-     * @param string   $route    A regex pattern for matching the URI.
-     * @param callable $callback The callback function to execute when the route matches.
+     * @param string   $method   HTTP method (GET, POST, etc.).
+     * @param string   $route    A regex pattern for the URI.
+     * @param callable $callback Callback to execute when the route matches.
      */
-    public function add($method, $route, $callback) {
+    public function add(string $method, string $route, callable $callback) {
         $this->routes[] = compact('method', 'route', 'callback');
     }
 
     /**
-     * Dispatch the request to the first matching route.
+     * Dispatch the request to the matching route.
      *
-     * @param string $method The HTTP method of the request.
-     * @param string $uri    The URI of the request.
-     * @return bool Returns true if a matching route was found and executed; otherwise, false.
+     * @param string $method HTTP method of the request.
+     * @param string $uri    Request URI.
+     * @return bool True if a route was matched and executed; otherwise, false.
      */
-    public function dispatch($method, $uri) {
+    public function dispatch(string $method, string $uri): bool {
         foreach ($this->routes as $route) {
             if ($route['method'] === $method && preg_match($route['route'], $uri, $matches)) {
-                // Execute the callback associated with the matched route.
                 call_user_func_array($route['callback'], $matches);
-                return true; // Indicate that the route was found and executed.
+                return true;
             }
         }
-        // No route matched.
         return false;
     }
 }

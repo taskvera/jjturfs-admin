@@ -2,10 +2,10 @@
     RewriteEngine On
     RewriteBase /
 
-    # If the requested resource exists as a file or directory, serve it directly.
+    # Serve existing files or directories directly
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 
-    # Otherwise, rewrite the request to index.php.
+    # Otherwise, redirect all requests to index.php
     RewriteRule ^ index.php [L]
 </IfModule>
