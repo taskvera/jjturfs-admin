@@ -93,9 +93,6 @@ class GlobalLogger {
         $logEntry = "[{$timestamp}] {$levelName}: {$message}{$debugInfo}" . PHP_EOL;
         file_put_contents($this->logFile, $logEntry, FILE_APPEND | LOCK_EX);
 
-        if ($this->environment === 'development') {
-            echo $logEntry;
-        }
     }
 
     // Public logging methods

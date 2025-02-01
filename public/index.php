@@ -37,32 +37,30 @@ $router = new Router();
 // 7. Define routes based on authentication status
 $isLoggedIn = isset($_SESSION['user_id']);
 if ($isLoggedIn) {
-// If the user is logged in, define routes for accessing the dashboard.
-if ($isLoggedIn) {
-    // Route for the dashboard view (e.g., GET /dashboard)
+    // User is logged in.
+    // Define a route for the dashboard view.
     $router->add('GET', '/^\/dashboard$/', function() use ($logger) {
         $logger->info("Displaying dashboard for logged in user");
-        // Include the dashboard view file. Ensure this file exists.
         require_once __DIR__ . '/../app/Views/DashboardView.php';
     });
     
-    // Route the base URL ("/") to redirect to the dashboard.
+    // Define the base URL ("/") to redirect to the dashboard.
     $router->add('GET', '/^\/$/', function() use ($logger) {
         $logger->info("User is logged in; redirecting root URL to dashboard");
         header("Location: /dashboard");
         exit();
     });
 } else {
-    // If the user is not logged in, route the base URL ("/") to redirect to the login page.
+    // User is not logged in.
+    // Define the base URL ("/") to redirect to the login page.
     $router->add('GET', '/^\/$/', function() use ($logger) {
         $logger->info("User not logged in; redirecting root URL to login");
         header("Location: /login");
         exit();
     });
 }
-} 
 
-// 8. Define authentication routes
+// 8. Define authentication routes (available regardless of login status)
 $authController = new AuthController($logger);
 $router->add('GET', '/^\/login$/', [$authController, 'showLogin']);
 $router->add('POST', '/^\/login$/', [$authController, 'handleLogin']);
