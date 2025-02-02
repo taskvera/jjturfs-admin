@@ -5,6 +5,7 @@ use Core\GlobalLogger;
 use Core\Router;
 use App\Controllers\AuthController;
 use App\Controllers\BankInfoController;
+use App\Controllers\EmployeeController;
 // Add global CORS headers at the top of public/index.php
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -87,6 +88,22 @@ $router->add('GET', '/^\/api\/lookup-bank-info$/', [$bankInfoController, 'lookup
 // Instantiate JobController and add the API endpoint route.
 $jobController = new \App\Controllers\JobController($logger);
 $router->add('GET', '/^\/api\/jobs$/', [$jobController, 'list']);
+
+// STEP X: Instantiate EmployeeController
+$employeeController = new EmployeeController($logger);
+
+// STEP Y: Add a route for employees index
+$router->add('GET', '/^\/employees$/', [$employeeController, 'index']);
+
+// GET /employees/123 - show
+$router->add('GET', '/^\/employees\/(\d+)$/', function($param) use ($employeeController, $logger) {
+    $logger->debug("Route match for /employees/(\d+). Captured param:", ['param' => $param]);
+
+    $id = (int) $param;
+    $logger->debug("Converted param to integer ID", ['id' => $id]);
+
+    $employeeController->show($id);
+});
 
 
 // STEP 12: Dispatch the incoming request
