@@ -4,44 +4,20 @@ namespace Core;
 use PDO;
 use PDOException;
 
-/**
- * Class Database
- *
- * Provides a singleton PDO database connection.
- * Expects credentials to be set in environment variables with no fallback.
- *
- * Required Environment Variables:
- *   - DB_HOST
- *   - DB_NAME
- *   - DB_USER
- *   - DB_PASS
- *
- * @package Core
- */
 class Database {
-    /**
-     * @var Database|null Singleton instance.
-     */
     private static $instance = null;
-
-    /**
-     * @var PDO The PDO database connection.
-     */
     private $connection;
 
-    /**
-     * Private constructor.
-     *
-     * @throws \Exception if any credential is missing or if the connection fails.
-     */
     private function __construct() {
-        $host = getenv('DB_HOST');
-        $dbname = getenv('DB_NAME');
-        $user = getenv('DB_USER');
-        $pass = getenv('DB_PASS');
+        // Use $_ENV directly instead of getenv
+        $host   = $_ENV['DB_HOST']   ?? null;
+        $dbname = $_ENV['DB_NAME']   ?? null;
+        $user   = $_ENV['DB_USER']   ?? null;
+        $pass   = $_ENV['DB_PASS']   ?? null;
 
-        if (!$host || !$dbname || $user === false || $pass === false) {
-            throw new \Exception("Database credentials are not properly set in the environment. Please ensure DB_HOST, DB_NAME, DB_USER, and DB_PASS are defined.");
+        // Check for missing variables
+        if (!$host || !$dbname || $user === null || $pass === null) {
+            throw new \Exception("Database credentials not set in \$_ENV. Check .env file and Dotenv.");
         }
 
         $dsn = "mysql:host={$host};dbname={$dbname};charset=utf8mb4";
@@ -55,12 +31,6 @@ class Database {
         }
     }
 
-    /**
-     * Get the singleton instance of Database.
-     *
-     * @return Database
-     * @throws \Exception if the connection cannot be established.
-     */
     public static function getInstance(): Database {
         if (self::$instance === null) {
             self::$instance = new Database();
@@ -68,11 +38,6 @@ class Database {
         return self::$instance;
     }
 
-    /**
-     * Get the PDO connection.
-     *
-     * @return PDO
-     */
     public function getConnection(): PDO {
         return $this->connection;
     }
