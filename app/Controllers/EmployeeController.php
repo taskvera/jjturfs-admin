@@ -62,34 +62,74 @@ class EmployeeController
      * @param int $id The ID of the employee.
      * @return void
      */
-    public function show(int $id): void
-    {
+    public function show(int $id): void {
         $this->logger->info("[EmployeeController] show() called", [
             'employee_id' => $id
         ]);
 
-        // Fetch the employee
+        // Fetch the employee record.
         $employee = $this->employeeModel->getEmployeeById($id);
 
         if (!$employee) {
             $this->logger->warn("[EmployeeController] Employee not found in show()", [
                 'employee_id' => $id
             ]);
-            // You might choose to show a 404 page, or redirect, etc.
             header("HTTP/1.0 404 Not Found");
             echo "404 - Employee not found.";
             return;
         }
 
-        // If we have a valid record, log some details
+        // Fetch permissions for this employee.
+        $permissions = $this->employeeModel->getPermissions($id);
+        // Merge permissions into the employee array (or pass as separate variable).
+        $employee['permissions'] = $permissions;
+
         $this->logger->info("[EmployeeController] show() found employee", [
             'employee_id' => $employee['id'],
             'first_name'  => $employee['first_name'],
             'last_name'   => $employee['last_name']
         ]);
 
-        // Load a view to show employee details
-        // (Create app/Views/EmployeeShowView.php if it doesn’t already exist)
-        require_once __DIR__ . '/../Views/EmployeeShowView.php';
+        // Load the view – the view now will have both $employee and $employee['permissions'] available.
+        require_once __DIR__ . '/../Views/HumanResources/EmployeeRecordView.php';
     }
+
+    /**
+     * Save employee menu permissions.
+     *
+     * Expects a POST request with:
+     * - employee_id
+     * - menu[] (an array of menu options)
+     *
+     * Returns JSON.
+     */
+    public function savePermissions(): void {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("HTTP/1.1 405 Method Not Allowed");
+            echo json_encode(['error' => 'Method not allowed']);
+            exit();
+        }
+        
+        $employeeId = $_POST['employee_id'] ?? null;
+        if (!$employeeId) {
+            header("HTTP/1.1 400 Bad Request");
+            echo json_encode(['error' => 'Employee ID is missing']);
+            exit();
+        }
+        
+        $menuOptions = $_POST['menu'] ?? [];
+        
+        // Call the model method to save the menu options
+        $result = $this->employeeModel->saveMenuOptions((int)$employeeId, $menuOptions);
+        
+        if ($result) {
+            echo json_encode(['success' => true]);
+        } else {
+            header("HTTP/1.1 500 Internal Server Error");
+            echo json_encode(['error' => 'Failed to save menu options']);
+        }
+        exit();
+    }
+
+
 }

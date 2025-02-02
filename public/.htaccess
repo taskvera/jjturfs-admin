@@ -1,6 +1,7 @@
 <IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteBase /
+RewriteEngine On
+RewriteBase /
+
 
     # Serve existing files or directories directly
     RewriteCond %{REQUEST_FILENAME} !-f

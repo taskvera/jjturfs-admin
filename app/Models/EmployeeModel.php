@@ -143,4 +143,73 @@ class EmployeeModel
             return null;
         }
     }
+
+    /**
+     * Save menu options for an employee.
+     *
+     * @param int $employeeId
+     * @param array $menuOptions
+     * @return bool True on success, false on failure.
+     */
+    public function saveMenuOptions(int $employeeId, array $menuOptions): bool {
+        try {
+            $db = \Core\Database::getInstance()->getConnection();
+            $menuJson = json_encode($menuOptions);
+            
+            // Check if a record already exists
+            $stmt = $db->prepare("SELECT employee_id FROM employee_permissions WHERE employee_id = :employee_id");
+            $stmt->execute(['employee_id' => $employeeId]);
+            $existing = $stmt->fetch();
+            
+            if ($existing) {
+                // Update existing record
+                $sql = "UPDATE employee_permissions SET menu_options = :menu_options WHERE employee_id = :employee_id";
+            } else {
+                // Insert a new record
+                $sql = "INSERT INTO employee_permissions (employee_id, menu_options) VALUES (:employee_id, :menu_options)";
+            }
+            
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['employee_id' => $employeeId, 'menu_options' => $menuJson]);
+            return true;
+        } catch (\Exception $e) {
+            if ($this->logger) {
+                $this->logger->error("[EmployeeModel] saveMenuOptions() exception", [
+                    'error' => $e->getMessage(),
+                    'employee_id' => $employeeId
+                ]);
+            }
+            return false;
+        }
+    }
+
+        /**
+     * Get permissions for a given employee.
+     *
+     * @param int $employeeId
+     * @return array|null Returns an associative array with keys "menu_options" and "crud_options" or null if none found.
+     */
+    public function getPermissions(int $employeeId): ?array {
+        try {
+            $db = \Core\Database::getInstance()->getConnection();
+            $stmt = $db->prepare("SELECT menu_options, crud_options FROM employee_permissions WHERE employee_id = :employee_id");
+            $stmt->execute(['employee_id' => $employeeId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($result) {
+                // Decode JSON strings into arrays (assuming they are stored as JSON)
+                $result['menu_options'] = json_decode($result['menu_options'], true);
+                $result['crud_options'] = json_decode($result['crud_options'], true);
+                return $result;
+            }
+            return null;
+        } catch (\Exception $e) {
+            if ($this->logger) {
+                $this->logger->error("[EmployeeModel] getPermissions() exception", [
+                    'error' => $e->getMessage(),
+                    'employee_id' => $employeeId
+                ]);
+            }
+            return null;
+        }
+    }
 }

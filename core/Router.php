@@ -26,7 +26,7 @@ class Router {
     public function dispatch(string $method, string $uri): bool {
         foreach ($this->routes as $route) {
             if ($route['method'] === $method && preg_match($route['route'], $uri, $matches)) {
-                call_user_func_array($route['callback'], $matches);
+                call_user_func_array($route['callback'], array_slice($matches, 1));
                 return true;
             }
         }

@@ -94,15 +94,19 @@ $employeeController = new EmployeeController($logger);
 
 // STEP Y: Add a route for employees index
 $router->add('GET', '/^\/employees$/', [$employeeController, 'index']);
+$router->add('GET', '/^.*employees\/(\d+)$/', function($id) use ($employeeController, $logger) {
+    $logger->debug("Route match for /employees/(\d+). Captured param:", ['param' => $id]);
+    $employeeController->show((int)$id);
+});
 
-// GET /employees/123 - show
-$router->add('GET', '/^.*employees\/(\d+)$/', function($param) use ($employeeController, $logger)   {
-    $logger->debug("Route match for /employees/(\d+). Captured param:", ['param' => $param]);
+$router->add('POST', '/^\/employees\/save-permissions$/', [$employeeController, 'savePermissions']);
 
-    $id = (int) $param;
-    $logger->debug("Converted param to integer ID", ['id' => $id]);
-
-    $employeeController->show($id);
+// Instantiate VendorController (assuming $logger is already defined)
+$vendorController = new \App\Controllers\VendorController($logger);
+$router->add('GET', '/^\/vendors$/', [$vendorController, 'index']);
+$router->add('GET', '/^\/vendors\/(\d+)$/', function($id) use ($vendorController, $logger) {
+    $logger->debug("Route match for vendors with ID:", ['id' => $id]);
+    $vendorController->show((int)$id);
 });
 
 
