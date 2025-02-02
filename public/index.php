@@ -96,7 +96,7 @@ $employeeController = new EmployeeController($logger);
 $router->add('GET', '/^\/employees$/', [$employeeController, 'index']);
 
 // GET /employees/123 - show
-$router->add('GET', '/^\/employees\/(\d+)$/', function($param) use ($employeeController, $logger) {
+$router->add('GET', '/^.*employees\/(\d+)$/', function($param) use ($employeeController, $logger)   {
     $logger->debug("Route match for /employees/(\d+). Captured param:", ['param' => $param]);
 
     $id = (int) $param;
